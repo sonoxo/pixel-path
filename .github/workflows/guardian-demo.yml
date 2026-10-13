@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - scripts/guardian-demo.mjs
+      - scripts/viewer.mjs
       - scripts/guardian-demo.test.mjs
       - scripts/guardian-browser-smoke.mjs
       - templates/guardian-overlay.js
@@ -14,6 +15,7 @@ on:
   pull_request:
     paths:
       - scripts/guardian-demo.mjs
+      - scripts/viewer.mjs
       - scripts/guardian-demo.test.mjs
       - scripts/guardian-browser-smoke.mjs
       - templates/guardian-overlay.js
