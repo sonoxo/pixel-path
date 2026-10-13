@@ -24,7 +24,7 @@ Run:
 node scripts/guardian-demo.mjs --out demo/guardian --serve 8080
 ```
 
-Open http://127.0.0.1:8080/ and use the fleet replay overlay. The generated example contains only invented units and local Cartesian route data; it does not control physical robots or connect to defense networks.
+Open http://127.0.0.1:8080/ and use the **visible upper-left interactive console**: speed/reverse slider, route scrubber, waypoint jump, camera look angle, original mini-map/info toggles, selectable fictional agent inspector, local training-event injection, and PNG/JSON exports. Hide the panel to reveal more scenery. The generated example contains only invented units and local Cartesian route data; it does not control physical robots or connect to defense networks.
 
 [Documentation and safety boundaries](docs/GUARDIAN.md)
 
