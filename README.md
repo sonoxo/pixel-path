@@ -14,6 +14,20 @@ path from Bath to Bristol" and it:
 
 *Bath, England: real streets from OpenStreetMap, art generated with the `moderate` kit.*
 
+## Offline Guardian training demo (free)
+
+Pixel Path can also render a **fictional**, non-weaponized GPT-Doug Guardian training corridor. It uses the actual Pixel Path 3D-road renderer and locally generated pixel-art SVGs, without geocoding, OpenStreetMap downloads, keys, or paid art.
+
+Run:
+
+```bash
+node scripts/guardian-demo.mjs --out demo/guardian --serve 8080
+```
+
+Open http://127.0.0.1:8080/ and use the fleet replay overlay. The generated example contains only invented units and local Cartesian route data; it does not control physical robots or connect to defense networks.
+
+[Documentation and safety boundaries](docs/GUARDIAN.md)
+
 ## What it is for
 
 A first-person, pixel-art view of any real road, built from the real map. Useful wherever you want a real place or route

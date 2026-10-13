@@ -1,0 +1,74 @@
+name: Guardian synthetic Pixel Path validation
+
+on:
+  push:
+    paths:
+      - scripts/guardian-demo.mjs
+      - scripts/viewer.mjs
+      - scripts/guardian-demo.test.mjs
+      - scripts/guardian-browser-smoke.mjs
+      - templates/guardian-overlay.js
+      - templates/guardian-overlay.css
+      - templates/viewer.html
+      - docs/GUARDIAN.md
+      - .github/workflows/guardian-demo.yml
+  pull_request:
+    paths:
+      - scripts/guardian-demo.mjs
+      - scripts/viewer.mjs
+      - scripts/guardian-demo.test.mjs
+      - scripts/guardian-browser-smoke.mjs
+      - templates/guardian-overlay.js
+      - templates/guardian-overlay.css
+      - templates/viewer.html
+      - docs/GUARDIAN.md
+      - .github/workflows/guardian-demo.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate JavaScript syntax
+        run: |
+          node --check scripts/guardian-demo.mjs
+          node --check scripts/guardian-demo.test.mjs
+          node --check templates/guardian-overlay.js
+      - name: Run offline layout and policy tests
+        run: node --test scripts/guardian-demo.test.mjs
+      - name: Generate complete static demo without network access
+        run: |
+          node scripts/guardian-demo.mjs --out "$RUNNER_TEMP/guardian-training"
+          test -s "$RUNNER_TEMP/guardian-training/index.html"
+          test -s "$RUNNER_TEMP/guardian-training/data/c0000.json"
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install free browser test dependencies
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Render Pixel Path Guardian in Chromium and exercise controls
+        env:
+          GUARDIAN_SCREENSHOT: /tmp/guardian-preview.png
+        run: node scripts/guardian-browser-smoke.mjs
+      - name: Publish screenshot preview for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guardian-visual-preview
+          path: /tmp/guardian-preview.png
+          if-no-files-found: ignore
