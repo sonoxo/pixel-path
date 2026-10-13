@@ -46,14 +46,15 @@ const { IDX, LEN } = road;
 const TOP = 6.5, toSpeed = t => Math.sign(t) * 3 * (Math.exp(Math.abs(t)) - 1), toThrottle = v => Math.sign(v) * Math.log(1 + Math.abs(v) / 3);
 let pos = Math.max(0, Math.min(LEN - 1, +(params.get('km') || 0) * 1000)), throttle = toThrottle(+(params.get('speed') ?? 60) / 3.6), speed = 0, paused = params.has('paused');
 const nudge = d => { throttle = Math.max(-TOP, Math.min(TOP, throttle + d)); if (Math.abs(throttle) < 0.02) throttle = 0; paused = false; };
-addEventListener('wheel', e => { e.preventDefault(); nudge(e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1) * 0.0025); }, { passive: false });
-let touchY = null; addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
+addEventListener('wheel', e => { if (e.target.closest?.('[data-pixel-path-controls]')) return; e.preventDefault(); nudge(e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1) * 0.0025); }, { passive: false });
+let touchY = null; addEventListener('touchstart', e => { touchY = e.target.closest?.('[data-pixel-path-controls]') ? null : e.touches[0].clientY; }, { passive: true });
 addEventListener('touchmove', e => { if (touchY == null) return; const y = e.touches[0].clientY; nudge((touchY - y) * 0.012); touchY = y; e.preventDefault(); }, { passive: false });
 addEventListener('touchend', () => { touchY = null; });
 const shown = { info: params.get('info') === '1', map: params.get('map') === '1' };
 const toggle = k => { shown[k] = !shown[k]; $(k).style.display = shown[k] ? 'block' : 'none'; };
 for (const k of ['info', 'map']) $(k).style.display = shown[k] ? 'block' : 'none';
 addEventListener('keydown', e => {
+  if (e.target.closest?.('input,button,select,textarea,[contenteditable="true"]') || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { nudge(0.35); e.preventDefault(); }
   else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { nudge(-0.35); e.preventDefault(); }
   else if (e.key === ' ') { paused = !paused; e.preventDefault(); }
@@ -104,6 +105,32 @@ window.__trip = {
   async step(m, seconds = 1 / 30) { pos = Math.max(0, Math.min(LEN - 1, pos + m)); road.T.now += seconds; road.streamAround(pos);
     for (let i = 0; i < 200 && !road.ready(Math.min(LEN - 1, pos + 900)); i++) await new Promise(r => setTimeout(r, 50)); road.render(pos, m / seconds); },
   resume() { frozen = false; last = performance.now(); },
+  // Additive camera/replay interface for accessible, optional control overlays.
+  // Upstream scroll, touch, arrow, Space, I/M and check-mode behavior remain intact.
+  get paused() { return paused || frozen; },
+  get speedKmh() { return toSpeed(throttle) * 3.6; },
+  get actualSpeedKmh() { return speed * 3.6; },
+  get mapVisible() { return shown.map; },
+  get infoVisible() { return shown.info; },
+  pause() { frozen = false; paused = true; },
+  play() { frozen = false; paused = false; last = performance.now(); },
+  setSpeedKmh(value) {
+    if (!Number.isFinite(value) || Math.abs(value) > 200) throw new RangeError('Playback speed must be between -200 and 200 km/h');
+    throttle = Math.max(-TOP, Math.min(TOP, toThrottle(value / 3.6)));
+    return toSpeed(throttle) * 3.6;
+  },
+  seekMetres(value) {
+    if (!Number.isFinite(value)) throw new TypeError('Seek position must be finite');
+    pos = Math.max(0, Math.min(LEN - 1, value));
+    road.streamAround(pos);
+    return pos;
+  },
+  setMapVisible(value) { shown.map = !!value; $('map').style.display = shown.map ? 'block' : 'none'; },
+  setInfoVisible(value) { shown.info = !!value; $('info').style.display = shown.info ? 'block' : 'none'; },
+  setLook(value) {
+    if (!Number.isFinite(value) || Math.abs(value) > 30) throw new RangeError('Camera look must be between -30 and 30 degrees');
+    road.setLook(value);
+  },
 };
 </script>
 </body>

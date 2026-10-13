@@ -72,3 +72,37 @@ test('output is reproducible, self-contained and credits synthetic data correctl
     rmSync(b, { recursive: true, force: true });
   }
 });
+
+
+test('full documented controls are included and original Pixel Path shortcuts survive', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'guardian-pixel-controls-'));
+  try {
+    generateGuardianDemo(dir);
+    const html = readFileSync(join(dir, 'index.html'), 'utf8');
+    const overlay = readFileSync(join(dir, 'guardian-overlay.js'), 'utf8');
+    const viewer = readFileSync(join(dir, 'guardian-overlay.css'), 'utf8');
+    for (const id of ['guardian-hold', 'guardian-resume', 'guardian-reset',
+      'guardian-speed', 'guardian-seek', 'guardian-waypoint', 'guardian-jump',
+      'guardian-view', 'guardian-map', 'guardian-info', 'guardian-units',
+      'guardian-focus', 'guardian-event-select', 'guardian-inject',
+      'guardian-clear-event', 'guardian-export', 'guardian-screenshot',
+      'guardian-collapse']) {
+      assert.ok(html.includes('id="' + id + '"'), id);
+    }
+    assert.match(html, /get paused\(\)/);
+    assert.match(html, /setSpeedKmh\(value\)/);
+    assert.match(html, /seekMetres\(value\)/);
+    assert.match(html, /setMapVisible\(value\)/);
+    assert.match(html, /setInfoVisible\(value\)/);
+    assert.match(html, /'ArrowUp'/);
+    assert.match(html, /'m' \|\| e.key === 'M'/);
+    assert.match(html, /data-pixel-path-controls/);
+    assert.match(overlay, /scenario\.physicalActuation !== false/);
+    assert.match(overlay, /scenario\.weapons !== false/);
+    assert.match(overlay, /URL\.createObjectURL/);
+    assert.match(viewer, /#guardian-panel/);
+    assert.match(viewer, /\[hidden\]/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
