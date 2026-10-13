@@ -15,7 +15,7 @@ export function install(TRIP) {
   copyFileSync(join(T, 'viewer.html'), join(TRIP, 'index.html')); copyFileSync(join(T, 'road.js'), join(TRIP, 'road.js')); copyFileSync(join(T, 'layout.js'), join(TRIP, 'layout.js'));
 }
 export function serve(TRIP, port = 0) {   // a tiny static server (any other static server works too); dot-folders stay private
-  const root = resolve(TRIP), TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json', '.png': 'image/png', '.js': 'text/javascript' };
+  const root = resolve(TRIP), TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json', '.png': 'image/png', '.js': 'text/javascript', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' };
   const srv = createServer((req, res) => {
     const p = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^([/\\])+/, ''); let f = join(root, p || 'index.html');
     if (!f.startsWith(root) || /[/\\]\./.test(f.slice(root.length)) || /[/\\]raw[/\\]|ledger\.json$/.test(f.slice(root.length))) { res.writeHead(404); return res.end('not found'); }
