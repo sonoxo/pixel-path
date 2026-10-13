@@ -26,6 +26,12 @@ try {
   await page.waitForFunction(() => document.querySelectorAll('#guardian-units .unit').length === 5,
     null, { timeout: 30000 });
   await page.waitForTimeout(800);
+  const panelStyle = await page.locator('#guardian-panel').evaluate(el => ({
+    position: getComputedStyle(el).position,
+    zIndex: getComputedStyle(el).zIndex,
+  }));
+  assert.equal(panelStyle.position, 'fixed', 'CSS must load from local viewer');
+  assert.equal(panelStyle.zIndex, '20', 'training controls must render above road');
   const pixels = await page.locator('#c').evaluate(c => {
     const g = c.getContext('2d');
     const w = c.width, h = c.height;
